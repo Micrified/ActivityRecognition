@@ -11,6 +11,18 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:text="Activity Recognizer"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:textSize="28sp"
+            android:fontFamily="monospace"
+            android:textColor="@color/colorPrimary"
+            android:background="@color/colorPrimaryDark"
+            android:padding="10dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,7 +37,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="10dp"
-                android:src="@drawable/svg_drawable_standing" />
+                android:onClick="animateView"
+                app:srcCompat="@drawable/svg_drawable_standing" />
 
             <ImageView
                 android:id="@+id/image_view_walking"
@@ -33,7 +46,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="10dp"
-                android:src="@drawable/svg_drawable_walking" />
+                android:onClick="animateView"
+                app:srcCompat="@drawable/svg_drawable_walking" />
         </LinearLayout>
 
         <LinearLayout
@@ -77,6 +91,46 @@
                 android:layout_width="match_parent"
                 android:layout_height="150dip"
                 android:id="@+id/graph_view" />
+
+
+            <Switch
+                android:layout_marginTop="10dp"
+                android:id="@+id/switch_train"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:text="Enable training mode"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="5dp"
+                android:textStyle="bold"
+                android:textSize="18dp"/>
+
+            <LinearLayout
+                android:layout_marginTop="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                >
+
+                <Button
+                    android:padding="5dp"
+                    android:id="@+id/button_train_standing"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Standing"/>
+
+                <Button
+                    android:padding="5dp"
+                    android:id="@+id/button_train_walking"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Walking"/>
+            </LinearLayout>
+
+
 
         </LinearLayout>
 

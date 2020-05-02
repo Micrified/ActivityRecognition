@@ -1,9 +1,12 @@
 package com.example.activityrecognition;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.AnimatedVectorDrawable;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,7 +14,9 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Switch;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -34,6 +39,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // Accelerometer sampling period (in microseconds)
     private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
+
+    // Switch
+    private Switch switch_train;
+
+    // Button (train standing)
+    private Button button_train_standing;
+
+    // Button (train walking)
+    private Button button_train_walking;
 
     // Buffer length
     private final static int data_cap = 100;
@@ -62,6 +76,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
 
+        // Configure the training switch
+        this.switch_train = findViewById(R.id.switch_train);
+
+        // Connect the switch
+
+        // Configure the buttons
+        this.button_train_standing = findViewById(R.id.button_train_standing);
+        this.button_train_walking = findViewById(R.id.button_train_walking);
+
+        // Connect the buttons
+        this.button_train_walking.setOnClickListener(this);
+        this.button_train_standing.setOnClickListener(this);
+
         // Configure the graph
         this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
         this.graph_view.getGridLabelRenderer().setVerticalLabelsVisible(false);
@@ -80,9 +107,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.sensorManager = m;
     }
 
+    public void animateView (View view) {
+        ImageView v = (ImageView)view;
+
+        Drawable d = v.getDrawable();
+
+        if (d instanceof AnimatedVectorDrawableCompat) {
+            AnimatedVectorDrawableCompat avd = (AnimatedVectorDrawableCompat)d;
+            avd.start();
+        } else {
+            if (d instanceof AnimatedVectorDrawable) {
+                AnimatedVectorDrawable avd = (AnimatedVectorDrawable)d;
+                avd.start();
+            }
+        }
+    }
+
     @Override
     public void onClick(View v) {
-
+        switch (v.getId()) {
+            case R.id.button_train_standing: {
+                Log.i("Button", "Pressed to train (standing)");
+            }
+            break;
+            case R.id.button_train_walking: {
+                Log.i("Button", "Pressed to train (walking)");
+            }
+            break;
+        }
     }
 
     @Override
