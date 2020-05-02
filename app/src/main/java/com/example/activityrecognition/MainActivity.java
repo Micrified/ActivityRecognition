@@ -3,6 +3,7 @@ package com.example.activityrecognition;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -31,13 +33,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
 
     // Accelerometer sampling period (in microseconds)
-    private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_NORMAL;
+    private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
 
-    // Some simple buffers and their length
+    // Buffer length
     private final static int data_cap = 100;
+
+    // Line graph data
     private float[] data_dx = new float[data_cap];
     private float[] data_dy = new float[data_cap];
     private float[] data_dz = new float[data_cap];
+
 
     // Simple integer tracking offset
     private int data_offset = 0;
@@ -56,6 +61,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
+
+        // Configure the graph
+        this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
+        this.graph_view.getGridLabelRenderer().setVerticalLabelsVisible(false);
+        this.graph_view.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
+        //this.graph_view.getGridLabelRenderer().setHorizontalLabelsVisible(false);
 
         // Get the sensor manager, and then configure the accelerometer
         SensorManager m = (SensorManager)(this.getSystemService(Context.SENSOR_SERVICE));
@@ -84,8 +95,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         switch(sensorEvent.sensor.getType()) {
 
             case Sensor.TYPE_ACCELEROMETER: {
-                System.out.printf("%f %f %f\n", sensorEvent.values[0], sensorEvent.values[1],
-                        sensorEvent.values[2]);
 
                 // Remove all series from the graph
                 graph_view.removeAllSeries();
@@ -107,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
 
                 // Create the new data series
-                series_x = new LineGraphSeries<>(xs);
-                series_y = new LineGraphSeries<>(ys);
-                series_z = new LineGraphSeries<>(zs);
+                series_x = new LineGraphSeries<>(xs); series_x.setColor(getResources().getColor(R.color.colorX));
+                series_y = new LineGraphSeries<>(ys); series_y.setColor(getResources().getColor(R.color.colorY));
+                series_z = new LineGraphSeries<>(zs); series_z.setColor(getResources().getColor(R.color.colorZ));
 
                 // Plot the new series
                 graph_view.addSeries(series_x);
