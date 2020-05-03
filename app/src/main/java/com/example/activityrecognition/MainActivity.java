@@ -14,8 +14,10 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Switch;
 
 import com.jjoe64.graphview.GraphView;
@@ -49,6 +51,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Button (train walking)
     private Button button_train_walking;
 
+    // Button (locate)
+    private Button button_locate;
+
+    // Button (train location)
+    private Button button_train_location;
+
+    // Spinner (train location)
+    private Spinner spinner_location;
+
     // Buffer length
     private final static int data_cap = 100;
 
@@ -81,19 +92,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Connect the switch
 
+
+        // Connect the location spinner
+        this.spinner_location = findViewById(R.id.spinner_location);
+
+        // Set the spinner values
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                        R.array.spinner_locations, R.layout.spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner_location.setAdapter(adapter);
+
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
         this.button_train_walking = findViewById(R.id.button_train_walking);
+        this.button_locate = findViewById(R.id.button_locate);
+        this.button_train_location = findViewById(R.id.button_train_location);
 
         // Connect the buttons
         this.button_train_walking.setOnClickListener(this);
         this.button_train_standing.setOnClickListener(this);
+        this.button_locate.setOnClickListener(this);
+        this.button_train_location.setOnClickListener(this);
 
         // Configure the graph
         this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
         this.graph_view.getGridLabelRenderer().setVerticalLabelsVisible(false);
         this.graph_view.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
-        //this.graph_view.getGridLabelRenderer().setHorizontalLabelsVisible(false);
 
         // Get the sensor manager, and then configure the accelerometer
         SensorManager m = (SensorManager)(this.getSystemService(Context.SENSOR_SERVICE));
@@ -132,6 +158,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             break;
             case R.id.button_train_walking: {
                 Log.i("Button", "Pressed to train (walking)");
+            }
+            break;
+            case R.id.button_train_location: {
+                Log.i("Button", "Pressed to train (" +
+                        this.spinner_location.getSelectedItem().toString() + ")");
+            }
+            break;
+            case R.id.button_locate: {
+                Log.i("Button", "Pressed to locate");
             }
             break;
         }
