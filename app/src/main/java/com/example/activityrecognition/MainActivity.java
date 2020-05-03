@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.Switch;
 
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -57,6 +56,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] data_dy = new float[data_cap];
     private float[] data_dz = new float[data_cap];
 
+    //sampling rate
+    private int numSamples;
+    private long startTime;
+    private double sampling_period = 10;
+
+    //ActivityTraining recording object
+    private ActivityTraining activity_trainer = new ActivityTraining((int) sampling_period);
+    boolean isTraining = false;
+
 
     // Simple integer tracking offset
     private int data_offset = 0;
@@ -78,8 +86,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Configure the training switch
         this.switch_train = findViewById(R.id.switch_train);
-
-        // Connect the switch
 
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
@@ -128,10 +134,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         switch (v.getId()) {
             case R.id.button_train_standing: {
                 Log.i("Button", "Pressed to train (standing)");
+                if(activity_trainer.isRecording == false)
+                    activity_trainer.startTraining(this.getBaseContext(), Activity.Standing, (int) sampling_period);
             }
             break;
             case R.id.button_train_walking: {
-                Log.i("Button", "Pressed to train (walking)");
+                Log.i("Button", "Pressed to train (walking)");;
+                if(activity_trainer.isRecording == false)
+                activity_trainer.startTraining(this.getBaseContext(), Activity.Walking, (int) sampling_period);
             }
             break;
         }
@@ -155,6 +165,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 data_dx[data_offset] = sensorEvent.values[0];
                 data_dy[data_offset] = sensorEvent.values[1];
                 data_dz[data_offset] = sensorEvent.values[2];
+
+                //check sampling rate
+                activity_trainer.addDatapoint(sensorEvent.values[2]);
+
+                numSamples++;
+                long now = System.currentTimeMillis();
+                if (now >= startTime + 1000) {
+                    sampling_period = 1000f / numSamples;
+                    //System.out.println("Current sampling rate: " + sampling_period + "ms");
+                    //System.out.println(numSamples + " per second");
+                    startTime = now;
+                    numSamples = 0;
+                }
 
                 // Update the offset
                 data_offset = (data_offset + 1) % data_cap;
@@ -180,7 +203,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 // Plot it in the graph
                 graph_view.onDataChanged(true, true);
-
                 break;
             }
 
