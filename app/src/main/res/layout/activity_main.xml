@@ -128,10 +128,32 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Walking"/>
+
+                <Button
+                    android:padding="5dp"
+                    android:id="@+id/button_train_jumping"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jumping"/>
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/textview_log"
+                android:layout_width="match_parent"
+                android:layout_height="81dp"
+                android:layout_weight="1"
+                android:text="Log will appear here"
+                android:textColor="@android:color/white" />
 
 
+            <TextView
+                android:id="@+id/textview_activity"
+                android:layout_width="match_parent"
+                android:layout_height="81dp"
+                android:layout_weight="1"
+                android:text="Current Activity: Unknown"
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
 
