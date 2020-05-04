@@ -47,12 +47,26 @@ public class LocationManager implements Serializable {
         }
     }
 
+    // Inner class for the result-set
+    class ResultSample {
+        public int cell_id;
+        public int hamming;
+        public ResultSample (int cell_id, int hamming) {
+            this.cell_id = cell_id; this.hamming = hamming;
+        }
+    }
+
     // Training set
     private ArrayList<TrainingSample> training_set;
+
+    // Contains the ordered set of last test results
+    private ArrayList<ResultSample> result_set;
 
     // Set of unique BSSIDs
     private ArrayList<String> unique_bssids;
 
+    // Wifi Manager
+    private WifiManager wifiManager;
 
     // Singleton constructor
     private LocationManager ()
@@ -75,6 +89,24 @@ public class LocationManager implements Serializable {
         return singleton;
     }
 
+    // Sets the WiFi Manager
+    public void setWifiManager (WifiManager manager)
+    {
+        this.wifiManager = manager;
+    }
+
+    // Getter: Wifi manager
+    public WifiManager getWifiManager ()
+    {
+        return this.wifiManager;
+    }
+
+    // Getter: Result set
+    public ArrayList<ResultSample> get_result_set ()
+    {
+        return this.result_set;
+    }
+
     // Adds scan results to a cell
     public void addScan (int cell, ArrayList<ScanResult> scan)
     {
@@ -92,6 +124,7 @@ public class LocationManager implements Serializable {
     // Classifier
     public int classify (ArrayList<ScanResult> test_sample)
     {
+        // Number of votes for each of the four cells
         int[] cell_count = {0,0,0,0};
 
         // Train if needed (new data may have been added to some cells)
@@ -99,20 +132,39 @@ public class LocationManager implements Serializable {
             train();
         }
 
+        // Clear the result-set
+        this.result_set = new ArrayList<ResultSample>();
+
         // Convert the test-sample to a binary hamming code
         final ArrayList<Integer> test_code = Cell.makeCode(test_sample, unique_bssids);
 
         // Sort by smallest hamming distance
         Collections.sort(training_set, new Comparator() {
                     public int compare(Object a, Object b) {
-           int h_a = LocationManager.hamming(test_code, (ArrayList<Integer>)a);
-           int h_b = LocationManager.hamming(test_code, (ArrayList<Integer>)b);
+                        TrainingSample x = (TrainingSample)a;
+                        TrainingSample y = (TrainingSample)b;
+           int h_a = LocationManager.hamming(test_code, x.code);
+           int h_b = LocationManager.hamming(test_code, y.code);
            if (h_a < h_b) {
                return -1;
            } else {
                return 1;
            }
         }});
+
+        // For visualization purposes, also convert this into a result set
+        for (TrainingSample s : training_set) {
+            result_set.add(new ResultSample(s.cell_id, hamming(s.code, test_code)));
+        }
+
+        // [DEBUG] Comparison is shown
+        Log.i("CLASSIFY", "Sorted data (by increasing hamming distance)");
+        for (int i = 0; i < training_set.size(); ++i) {
+            String test_code_string = Cell.codeToString(test_code);
+            String compare_code_string = Cell.codeToString(training_set.get(i).code);
+            System.out.printf("%s vs %s: %d\n", test_code_string, compare_code_string,
+                    hamming(test_code, training_set.get(i).code));
+        }
 
         // Classify using K-NN (increment cell label if sample belonged to it)
         for (int i = 0; i < k; ++i) {
@@ -136,22 +188,28 @@ public class LocationManager implements Serializable {
     }
 
     // Training (post-processing)
-    private void train ()
+    public ArrayList<TrainingSample> train ()
     {
+        Log.i("TRAIN", "Invoked()");
+
         // Reset the training set
         training_set = new ArrayList<TrainingSample>();
 
         // Generate the list of unique BSSIDs
         unique_bssids = get_unique_bssids();
 
-        // For all cells: generate the training set
+        // For all cells: generate the training set (RSS -> binary)
         for (Cell c : cells) {
             c.make_training_set(unique_bssids);
         }
 
         // Building the overall training set
         for (Cell c : cells) {
+
+            // Fetch the training sets of binary strings
             ArrayList<ArrayList<Integer>> training_sets = c.get_training_set();
+
+            // Add them all to the master set with the label of the cell
             for (ArrayList<Integer> code : training_sets) {
                 training_set.add(new TrainingSample(c.getId(), code));
             }
@@ -159,6 +217,9 @@ public class LocationManager implements Serializable {
 
         // Mark complete
         training_required = false;
+
+        // Return the training set
+        return training_set;
     }
 
     // Creates set of unique access points from the set of cells

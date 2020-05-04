@@ -94,4 +94,14 @@ public class Cell {
         }
         return false;
     }
+
+    // Converts a hamming code to a string
+    public static String codeToString (ArrayList<Integer> code)
+    {
+        String s = "{";
+        for (int i = 0; i < code.size(); ++i) {
+            s += code.get(i);
+        }
+        return s + "}";
+    }
 }
