@@ -32,22 +32,13 @@
             android:weightSum="2">
 
             <ImageView
-                android:id="@+id/image_view_standing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/image_view_activity"
+                android:layout_width="match_parent"
+                android:layout_height="175dp"
                 android:layout_weight="1"
                 android:padding="10dp"
                 android:onClick="animateView"
-                app:srcCompat="@drawable/svg_drawable_standing" />
-
-            <ImageView
-                android:id="@+id/image_view_walking"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="10dp"
-                android:onClick="animateView"
-                app:srcCompat="@drawable/svg_drawable_walking" />
+                app:srcCompat="@drawable/svg_drawable_questionmark" />
         </LinearLayout>
 
         <LinearLayout
@@ -66,18 +57,8 @@
                 android:textStyle="bold"
                 android:fontFamily="monospace"
                 android:textColor="@color/colorPrimaryDark"
-                android:text="Standing"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textAlignment="center"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:fontFamily="monospace"
-                android:textColor="@color/colorPrimaryDark"
-                android:text="Walking"/>
+                android:text="Train all first!
+                Detect which after!"/>
         </LinearLayout>
 
         <LinearLayout
@@ -93,12 +74,24 @@
                 android:id="@+id/graph_view" />
 
 
+            <Button
+                android:layout_marginTop="10dp"
+                android:id="@+id/localization"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimaryDark"
+                android:text="Localization"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="5dp"
+                android:textStyle="bold"
+                android:textSize="18dp"/>
+          
             <LinearLayout
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="2"
+                android:weightSum="3"
                 >
 
                 <Button
@@ -116,19 +109,23 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Walking"/>
+
+                <Button
+                    android:padding="5dp"
+                    android:id="@+id/button_train_jumping"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jumping"/>
             </LinearLayout>
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/textview_log"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="2"/>
+                android:layout_height="81dp"
+                android:layout_weight="1"
+                android:text="Log will appear here"
+                android:textColor="@android:color/white" />
 
             <Button
                 android:id="@+id/button_location_activity"
@@ -136,6 +133,13 @@
                 android:layout_height="wrap_content"
                 android:text="Localization"/>
 
+            <TextView
+                android:id="@+id/textview_activity"
+                android:layout_width="match_parent"
+                android:layout_height="81dp"
+                android:layout_weight="1"
+                android:text="Current Activity: Unknown"
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
 

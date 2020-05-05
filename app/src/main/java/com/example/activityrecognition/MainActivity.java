@@ -1,6 +1,7 @@
 package com.example.activityrecognition;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import android.content.BroadcastReceiver;
@@ -24,12 +25,9 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -40,11 +38,8 @@ import static java.security.AccessController.getContext;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener {
 
-    // ImageView for the walking symbol
-    private ImageView image_view_walking;
-
     // ImageView for the stationary symbol
-    private ImageView image_view_standing;
+    private ImageView image_view_activity;
 
     // Graph for displaying live accelerometer information
     private GraphView graph_view;
@@ -55,15 +50,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Accelerometer sampling period (in microseconds)
     private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
 
+    // localization
+    private Button localization;
+
     // Button (train standing)
     private Button button_train_standing;
 
     // Button (train walking)
     private Button button_train_walking;
 
-
-    // Button (go to location activity)
-    private Button button_location_activity;
+    // Button (train jumping)
+    private Button button_train_jumping;
 
     // Buffer length
     private final static int data_cap = 100;
@@ -73,9 +70,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] data_dy = new float[data_cap];
     private float[] data_dz = new float[data_cap];
 
+    //sampling rate
+    private int numSamples;
+    private long startTime;
+    private double sampling_period = 10;
+
+    //ActivityTraining recording object
+    private ActivityTraining activity_trainer = new ActivityTraining((int) sampling_period);
+    boolean isTraining = false;
+
+    public static TextView textview_logger = null;
+    public static TextView textview_activity = null;
 
     // Simple integer tracking offset
     private int data_offset = 0;
+
+    public  static void Log(String message)
+    {
+        if(textview_logger != null)
+        {
+            System.out.println(message);
+            textview_logger.setText(message);
+        }
+        else
+            return;
+    }
+
+    public  static void LogActivity(String message)
+    {
+        if(textview_activity != null)
+        {
+            System.out.println(message);
+            textview_activity.setText(message);
+        }
+        else
+            return;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,24 +113,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         Sensor accelerometer;
 
-        // Configure walking imageview
-        this.image_view_walking = findViewById(R.id.image_view_walking);
+        // Text view for logs
+        this.textview_logger = findViewById(R.id.textview_log);
+
+        // Text view for activities
+        this.textview_activity = findViewById(R.id.textview_activity);
 
         // Configure stationary imageview
-        this.image_view_standing = findViewById(R.id.image_view_standing);
+        this.image_view_activity = findViewById(R.id.image_view_activity);
+
+
 
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
 
+        // Configure the training switch
+        this.localization = findViewById(R.id.localization);
+
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
         this.button_train_walking = findViewById(R.id.button_train_walking);
-        this.button_location_activity = findViewById(R.id.button_location_activity);
+        this.button_train_jumping = findViewById(R.id.button_train_jumping);
 
         // Connect the buttons
         this.button_train_walking.setOnClickListener(this);
         this.button_train_standing.setOnClickListener(this);
-        this.button_location_activity.setOnClickListener(this);
+        this.button_train_jumping.setOnClickListener(this);
 
         // Configure the graph
         this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
@@ -141,10 +179,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         switch (v.getId()) {
             case R.id.button_train_standing: {
                 Log.i("Button", "Pressed to train (standing)");
+                if(activity_trainer.isRecording == false)
+                    activity_trainer.startTraining(this.getApplicationContext(), Activity.Standing, (int) sampling_period);
             }
             break;
             case R.id.button_train_walking: {
-                Log.i("Button", "Pressed to train (walking)");
+                Log.i("Button", "Pressed to train (walking)");;
+                if(activity_trainer.isRecording == false)
+                activity_trainer.startTraining(this.getApplicationContext(), Activity.Walking, (int) sampling_period);
+            }
+            break;
+            case R.id.button_train_jumping: {
+                Log.i("Button", "Pressed to train (jumping)");;
+                if(activity_trainer.isRecording == false)
+                    activity_trainer.startTraining(this.getApplicationContext(), Activity.Jumping, (int) sampling_period);
             }
             break;
             case R.id.button_location_activity: {
@@ -175,8 +223,46 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 data_dy[data_offset] = sensorEvent.values[1];
                 data_dz[data_offset] = sensorEvent.values[2];
 
+                //check sampling rate
+                activity_trainer.addDatapoint(sensorEvent.values[2]);
+
+                numSamples++;
+                long now = System.currentTimeMillis();
+                if (now >= startTime + 1000) {
+                    sampling_period = 1000f / numSamples;
+                    //System.out.println("Current sampling rate: " + sampling_period + "ms");
+                    //System.out.println(numSamples + " per second");
+                    startTime = now;
+                    numSamples = 0;
+                }
+
                 // Update the offset
                 data_offset = (data_offset + 1) % data_cap;
+
+                // Post results
+                new Handler(Looper.getMainLooper()).post(new Runnable ()
+                {
+                    @Override
+                    public void run ()
+                    {
+                        if(activity_trainer.current_activity == Activity.Jumping)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_jumping));
+                        }
+                        else if(activity_trainer.current_activity == Activity.Walking)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_walking));
+                        }
+                        else if (activity_trainer.current_activity == Activity.Standing)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_standing));
+                        }
+                        else
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_questionmark));
+                        }
+                    }
+                });
 
                 // Create the new set of data points
                 for (int i = 0; i < data_cap; ++i) {
@@ -199,7 +285,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 // Plot it in the graph
                 graph_view.onDataChanged(true, true);
-
                 break;
             }
 
