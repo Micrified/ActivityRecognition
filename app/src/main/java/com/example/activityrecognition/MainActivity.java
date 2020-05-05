@@ -1,6 +1,7 @@
 package com.example.activityrecognition;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import android.content.Context;
@@ -12,11 +13,12 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
@@ -25,11 +27,8 @@ import com.jjoe64.graphview.series.LineGraphSeries;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener {
 
-    // ImageView for the walking symbol
-    private ImageView image_view_walking;
-
     // ImageView for the stationary symbol
-    private ImageView image_view_standing;
+    private ImageView image_view_activity;
 
     // Graph for displaying live accelerometer information
     private GraphView graph_view;
@@ -40,8 +39,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Accelerometer sampling period (in microseconds)
     private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
 
-    // Switch
-    private Switch switch_train;
+    // localization
+    private Button localization;
 
     // Button (train standing)
     private Button button_train_standing;
@@ -104,9 +103,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
         Sensor accelerometer;
 
-        // Configure walking imageview
-        this.image_view_walking = findViewById(R.id.image_view_walking);
-
         // Text view for logs
         this.textview_logger = findViewById(R.id.textview_log);
 
@@ -114,13 +110,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.textview_activity = findViewById(R.id.textview_activity);
 
         // Configure stationary imageview
-        this.image_view_standing = findViewById(R.id.image_view_standing);
+        this.image_view_activity = findViewById(R.id.image_view_activity);
+
+
 
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
 
         // Configure the training switch
-        this.switch_train = findViewById(R.id.switch_train);
+        this.localization = findViewById(R.id.localization);
 
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
@@ -172,19 +170,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case R.id.button_train_standing: {
                 Log.i("Button", "Pressed to train (standing)");
                 if(activity_trainer.isRecording == false)
-                    activity_trainer.startTraining(this.getBaseContext(), Activity.Standing, (int) sampling_period);
+                    activity_trainer.startTraining(this.getApplicationContext(), Activity.Standing, (int) sampling_period);
             }
             break;
             case R.id.button_train_walking: {
                 Log.i("Button", "Pressed to train (walking)");;
                 if(activity_trainer.isRecording == false)
-                activity_trainer.startTraining(this.getBaseContext(), Activity.Walking, (int) sampling_period);
+                activity_trainer.startTraining(this.getApplicationContext(), Activity.Walking, (int) sampling_period);
             }
             break;
             case R.id.button_train_jumping: {
                 Log.i("Button", "Pressed to train (jumping)");;
                 if(activity_trainer.isRecording == false)
-                    activity_trainer.startTraining(this.getBaseContext(), Activity.Jumping, (int) sampling_period);
+                    activity_trainer.startTraining(this.getApplicationContext(), Activity.Jumping, (int) sampling_period);
             }
             break;
         }
@@ -224,6 +222,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 // Update the offset
                 data_offset = (data_offset + 1) % data_cap;
+
+                // Post results
+                new Handler(Looper.getMainLooper()).post(new Runnable ()
+                {
+                    @Override
+                    public void run ()
+                    {
+                        if(activity_trainer.current_activity == Activity.Jumping)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_jumping));
+                        }
+                        else if(activity_trainer.current_activity == Activity.Walking)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_walking));
+                        }
+                        else if (activity_trainer.current_activity == Activity.Standing)
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_standing));
+                        }
+                        else
+                        {
+                            image_view_activity.setImageDrawable(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.svg_drawable_questionmark));
+                        }
+                    }
+                });
 
                 // Create the new set of data points
                 for (int i = 0; i < data_cap; ++i) {

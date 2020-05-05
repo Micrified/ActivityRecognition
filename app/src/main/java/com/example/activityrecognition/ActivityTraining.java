@@ -9,14 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Timer;
 
 
@@ -36,6 +32,8 @@ public class ActivityTraining {
 
     public boolean isRecording = false;
     public boolean isComparing = false;
+
+    public Activity current_activity = null;
 
     public ActivityTraining(int sample_period)
     {
@@ -137,7 +135,10 @@ public class ActivityTraining {
                             isComparing = true;
                             int activity = compareCurrentTrained();
                             if(activity != -1)
+                            {
                                 MainActivity.LogActivity("Current Activity: " + Activity.values()[activity].toString());
+                                current_activity = Activity.values()[activity];
+                            }
                             isComparing = false;
                         }
                         getCurrentActivity();
@@ -154,6 +155,10 @@ public class ActivityTraining {
         Float currentVariance = variance(cloneArrayListFloat(current_buffer));
 
         Float[] distances = new Float[trained_variances_set.size()];
+        for (ArrayList<Float> f: trained_variances_set
+             ) {if(f.size() == 0)
+                 return -1;
+        }
         int i = 0;
         //for each float in these sets get a knnsample object and add to giant list
         ArrayList<knnSample> samples = new ArrayList<knnSample>();
