@@ -3,7 +3,10 @@ package com.example.activityrecognition;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
@@ -11,17 +14,29 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.security.AccessController.getContext;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener {
 
@@ -40,14 +55,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Accelerometer sampling period (in microseconds)
     private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
 
-    // Switch
-    private Switch switch_train;
-
     // Button (train standing)
     private Button button_train_standing;
 
     // Button (train walking)
     private Button button_train_walking;
+
+
+    // Button (go to location activity)
+    private Button button_location_activity;
 
     // Buffer length
     private final static int data_cap = 100;
@@ -76,24 +92,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
 
-        // Configure the training switch
-        this.switch_train = findViewById(R.id.switch_train);
-
-        // Connect the switch
-
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
         this.button_train_walking = findViewById(R.id.button_train_walking);
+        this.button_location_activity = findViewById(R.id.button_location_activity);
 
         // Connect the buttons
         this.button_train_walking.setOnClickListener(this);
         this.button_train_standing.setOnClickListener(this);
+        this.button_location_activity.setOnClickListener(this);
 
         // Configure the graph
         this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
         this.graph_view.getGridLabelRenderer().setVerticalLabelsVisible(false);
         this.graph_view.getGridLabelRenderer().setHorizontalLabelsColor(Color.WHITE);
-        //this.graph_view.getGridLabelRenderer().setHorizontalLabelsVisible(false);
 
         // Get the sensor manager, and then configure the accelerometer
         SensorManager m = (SensorManager)(this.getSystemService(Context.SENSOR_SERVICE));
@@ -105,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // Assign the sensor manager
         this.sensorManager = m;
+
     }
 
     public void animateView (View view) {
@@ -132,6 +145,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             break;
             case R.id.button_train_walking: {
                 Log.i("Button", "Pressed to train (walking)");
+            }
+            break;
+            case R.id.button_location_activity: {
+                Log.i("Button", "Pressed to go to location activity");
+                Intent intent = new Intent(this, LocationActivity.class);
+                startActivity(intent);
             }
             break;
         }
@@ -186,6 +205,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         }
     }
+
 
     // Handler for change in sensor accuracy
     @Override
