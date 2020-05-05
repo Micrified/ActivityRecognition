@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int accelerometer_sampling_period = SensorManager.SENSOR_DELAY_UI;
 
     // localization
-    private Button localization;
+    private Button button_localization;
 
     // Button (train standing)
     private Button button_train_standing;
@@ -85,23 +85,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Simple integer tracking offset
     private int data_offset = 0;
 
-    public  static void Log(String message)
+    public  static void Log(final String message)
     {
         if(textview_logger != null)
         {
-            System.out.println(message);
-            textview_logger.setText(message);
+            new Handler(Looper.getMainLooper()).post(new Runnable ()
+            {
+                @Override
+                public void run ()
+                {
+                    System.out.println(message);
+                    textview_logger.setText(message);
+                }
+            });
         }
         else
             return;
     }
 
-    public  static void LogActivity(String message)
+    public  static void LogActivity(final String message)
     {
         if(textview_activity != null)
         {
-            System.out.println(message);
-            textview_activity.setText(message);
+            new Handler(Looper.getMainLooper()).post(new Runnable ()
+            {
+                @Override
+                public void run ()
+                {
+                    System.out.println(message);
+                    textview_activity.setText(message);
+                }
+            });
         }
         else
             return;
@@ -127,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Configure the graph display
         this.graph_view = findViewById(R.id.graph_view);
 
-        // Configure the training switch
-        this.localization = findViewById(R.id.localization);
+        // Configure the training button
+        this.button_localization = findViewById(R.id.localization);
 
         // Configure the buttons
         this.button_train_standing = findViewById(R.id.button_train_standing);
@@ -139,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.button_train_walking.setOnClickListener(this);
         this.button_train_standing.setOnClickListener(this);
         this.button_train_jumping.setOnClickListener(this);
+        this.button_localization.setOnClickListener(this);
 
         // Configure the graph
         this.graph_view.getGridLabelRenderer().setGridColor(Color.WHITE);
@@ -195,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     activity_trainer.startTraining(this.getApplicationContext(), Activity.Jumping, (int) sampling_period);
             }
             break;
-            case R.id.button_location_activity: {
+            case R.id.localization: {
                 Log.i("Button", "Pressed to go to location activity");
                 Intent intent = new Intent(this, LocationActivity.class);
                 startActivity(intent);
