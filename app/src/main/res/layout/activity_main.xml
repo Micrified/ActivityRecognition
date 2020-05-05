@@ -85,7 +85,7 @@
                 android:paddingVertical="5dp"
                 android:textStyle="bold"
                 android:textSize="18dp"/>
-
+          
             <LinearLayout
                 android:layout_marginTop="10dp"
                 android:layout_width="match_parent"
@@ -127,6 +127,11 @@
                 android:text="Log will appear here"
                 android:textColor="@android:color/white" />
 
+            <Button
+                android:id="@+id/button_location_activity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Localization"/>
 
             <TextView
                 android:id="@+id/textview_activity"
